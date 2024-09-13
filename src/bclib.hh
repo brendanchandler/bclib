@@ -2,6 +2,9 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <new>
+
+#define assert(c) if (!(c)) __builtin_trap()
 
 using I64 = int64_t;
 using I32 = int32_t;
@@ -21,27 +24,33 @@ using Usize = size_t;
 
 using B32 = int32_t;
 
-#define assert(c) do {if (!(c) __debug_break()} while(0)
 
-typedef<typename T>
-struct Str
+/********************* Strings ***************************/
+struct S8
 {
-    T * v;
+    U8 * v;
     Size len;
+
+    S8() = default;
+
+    template <Size N>
+    S8(char const (&s)[N]): v((U8 *)s), len(N-1) {}
 };
+
 
 struct StrPair
 {
-    Str * beg;
-    Str * end;
+    S8 * beg;
+    S8 * end;
 };
 
 struct StrList
 {
-    Str * v;
+    S8 * v;
     StrList * next;
 };
 
+/********************** Arena ****************************/
 struct Arena
 {
     Byte * beg;
@@ -52,15 +61,40 @@ struct Arena
         end(start+capacity) {}
 };
 
-template <typename T>
-T * make(Arena * arena, U32 count = 1)
+template <typename T, typename ...A>
+T * make(Arena * arena, Size count = 1, A ...args)
 {
-    Size size = sizeof T;
-    Size align = alignof T;
-    Size pad = (size - 1) & arena.end;
+    Size size = sizeof(T);
+    Size align = alignof(T);
+    Size pad = (align - 1) & (Size)arena->end;
     
-    assert((arena.end - arena.beg - pad) >= size * count);
-    arena.end -= size * count + pad;
-    return (T *)arena.end;
+    assert(count >= 0);
+    assert((arena->end - arena->beg - pad) >= size * count);
+    arena->end -= size * count + pad;
+    T * r = (T *)arena->end;
+    for (int i = 0; i < count; ++i) {
+        new((void *)&r[i]) T(args...);
+    }
+    return r;
 }
 
+/**************** Platform Code *********************/
+struct PlatformFD {
+    int fd;
+};
+
+PlatformFD platform_stdout();
+PlatformFD platform_stderr();
+
+struct PlatformWritten
+{
+    static int const ERR_MSG_CAP = 256;
+
+    Size bytes_written;
+    B32 ok;
+};
+
+PlatformWritten platform_write(PlatformFD * fd, S8 msg);
+
+int print(S8 msg, PlatformFD fd = platform_stdout());
+int print(StrList * strlist, PlatformFD fd = platform_stdout());
