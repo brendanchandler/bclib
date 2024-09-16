@@ -8,19 +8,26 @@ struct TestStats
     I32 failures;
 };
 
-int foo()
-{
-    return 3;
-}
-
 void check2(TestStats * ts, B32 condition, S8 msg)
 {
-    (void)msg;
+    int const BUF_SIZE=256;
+    Byte buf[BUF_SIZE];
+    Arena scratch(buf, BUF_SIZE);
+
+    StrList out;
     
+    strlist_append(&out, &scratch, "Checking ");
+    strlist_append(&out, &scratch, msg);
+    strlist_append(&out, &scratch, "... ");
+
     if(!condition) {
-        // TODO: print the condition that failed
+        strlist_append(&out, &scratch, "failed!");
         ts->failures++;
+    } else {
+        strlist_append(&out, &scratch, "ok!\n");
     }
+
+    print(out);
 }
 
 static void test_arena(TestStats * ts)
@@ -59,4 +66,5 @@ int main()
 {
     TestStats ts;
     test_arena(&ts);
+    print(S8("All tests passed!\n"));
 }

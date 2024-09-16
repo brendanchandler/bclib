@@ -25,31 +25,6 @@ using Usize = size_t;
 using B32 = int32_t;
 
 
-/********************* Strings ***************************/
-struct S8
-{
-    U8 * v;
-    Size len;
-
-    S8() = default;
-
-    template <Size N>
-    S8(char const (&s)[N]): v((U8 *)s), len(N-1) {}
-};
-
-
-struct StrPair
-{
-    S8 * beg;
-    S8 * end;
-};
-
-struct StrList
-{
-    S8 * v;
-    StrList * next;
-};
-
 /********************** Arena ****************************/
 struct Arena
 {
@@ -78,6 +53,72 @@ T * make(Arena * arena, Size count = 1, A ...args)
     return r;
 }
 
+/********************* Strings ***************************/
+struct S8
+{
+    U8 * val;
+    Size len;
+
+    S8() = default;
+
+    template <Size N>
+    S8(char const (&s)[N]):
+        val((U8 *)s),
+        len(N-1)
+    {
+    }
+};
+
+
+struct StrPair
+{
+    S8 * beg;
+    S8 * end;
+
+    StrPair(S8 * beg, S8 * end):
+        beg(beg),
+        end(end)
+    {
+    }
+};
+
+struct StrList
+{
+    S8 val = "";
+    StrList * next = nullptr;
+};
+
+
+void strlist_append(StrList * list, Arena * arena, S8 str);
+
+/**************** Buffers ***************************/
+template <typename T>
+struct Buffer
+{
+    T * val = 0;
+    Size len = 0;
+    Size cap = 0;
+
+    T & operator[](std::size_t pos) {
+        assert(pos < len);
+        return val[pos];
+    }
+
+    Buffer(Arena * arena, Size size):
+        len(0),
+        cap(size)
+    {
+        val = make<T>(arena, size);
+    }
+};
+
+template <typename T>
+void buffer_append(Buffer<T> * buf, Arena * arena, T * value)
+{
+    //TODO handle full buffer
+    buf[buf.len++] = value;
+}
+
 /**************** Platform Code *********************/
 struct PlatformFD {
     int fd;
@@ -90,11 +131,11 @@ struct PlatformWritten
 {
     static int const ERR_MSG_CAP = 256;
 
-    Size bytes_written;
-    B32 ok;
+    Size bytes_written = 0;
+    B32 ok = false;
 };
 
-PlatformWritten platform_write(PlatformFD * fd, S8 msg);
+PlatformWritten platform_write(PlatformFD * pfd, S8 msg);
 
 int print(S8 msg, PlatformFD fd = platform_stdout());
-int print(StrList * strlist, PlatformFD fd = platform_stdout());
+int print(StrList strlist, PlatformFD fd = platform_stdout());

@@ -8,6 +8,7 @@ CXXFLAGS="-Wall -Werror -Wextra"
 CXXFLAGS+=" -Wno-unused-parameter -Wno-unused-function"
 CXXFLAGS+=" -fsanitize=undefined -fsanitize-trap"
 CXXFLAGS+=" -I src/"
+CXXFLAGS+=" -g3 -O0"
 
 SRCS="src/bclib.cc"
 SRCS+=" src/platform.cc"

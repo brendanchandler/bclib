@@ -22,7 +22,7 @@ PlatformWritten platform_write(PlatformFD * pfd, S8 msg)
     int rc;
 
     while (pw.bytes_written < msg.len) {
-        rc = write(pfd->fd, msg.v + pw.bytes_written, msg.len - pw.bytes_written);
+        rc = write(pfd->fd, msg.val + pw.bytes_written, msg.len - pw.bytes_written);
         if (rc > 0) {
             pw.bytes_written += rc;
         } else if (rc == EAGAIN) {
