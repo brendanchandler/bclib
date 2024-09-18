@@ -67,6 +67,12 @@ struct S8
         len(N-1)
     {
     }
+
+    S8(U8 * val, Size len):
+        val(val),
+        len(len)
+    {
+    }
 };
 
 

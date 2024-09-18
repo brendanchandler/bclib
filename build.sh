@@ -3,7 +3,6 @@
 release_type="$1"
 mkdir -p build
 
-
 CXXFLAGS="-Wall -Werror -Wextra"
 CXXFLAGS+=" -Wno-unused-parameter -Wno-unused-function"
 CXXFLAGS+=" -fsanitize=undefined -fsanitize-trap"
@@ -15,5 +14,8 @@ SRCS+=" src/platform.cc"
 
 TEST_SRCS="test/test_bclib.cc"
 
-g++ --std=c++20 ${CXXFLAGS} -o build/bclib-tests ${SRCS} ${TEST_SRCS}
+g++ ${CXXFLAGS} -o build/test-bclib ${SRCS} ${TEST_SRCS}
 
+TEST_SRCS="test/test_bclib_perf.cc"
+
+g++ ${CXXFLAGS} -o build/test-bclib-perf ${SRCS} ${PERF_SRCS}

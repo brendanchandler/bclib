@@ -8,6 +8,14 @@ struct TestStats
     I32 failures;
 };
 
+template <typename T>
+void bc_memcpy(T * dest, T * src, Size len)
+{
+    for(int i = 0; i < len; i++) {
+        dest[i] = src[i];
+    }
+}
+
 void check2(TestStats * ts, B32 condition, S8 msg)
 {
     int const BUF_SIZE=256;
@@ -66,5 +74,10 @@ int main()
 {
     TestStats ts;
     test_arena(&ts);
-    print(S8("All tests passed!\n"));
+
+    if (ts.failures == 0) {
+        print(S8("All tests passed!\n"));
+    } else {
+        print(S8("Tests failed.\n"));
+    }
 }
