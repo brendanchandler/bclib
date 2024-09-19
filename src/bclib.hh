@@ -3,8 +3,9 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <new>
+#include <trace.hh>
 
-#define assert(c) if (!(c)) __builtin_trap()
+#define bc_assert(c) if (!(c)) __builtin_trap()
 
 using I64 = int64_t;
 using I32 = int32_t;
@@ -33,8 +34,17 @@ struct Arena
 
     inline Arena(Byte * start, Size capacity):
         beg(start),
-        end(start+capacity) {}
+        end(start+capacity)
+    {
+    }
+
+    inline Arena(Arena & other):
+        beg(other.beg),
+        end(other.end)
+    {
+    }
 };
+
 
 template <typename T, typename ...A>
 T * make(Arena * arena, Size count = 1, A ...args)
@@ -43,8 +53,8 @@ T * make(Arena * arena, Size count = 1, A ...args)
     Size align = alignof(T);
     Size pad = (align - 1) & (Size)arena->end;
     
-    assert(count >= 0);
-    assert((arena->end - arena->beg - pad) >= size * count);
+    bc_assert(count >= 0);
+    bc_assert((arena->end - arena->beg - pad) >= size * count);
     arena->end -= size * count + pad;
     T * r = (T *)arena->end;
     for (int i = 0; i < count; ++i) {
@@ -106,7 +116,7 @@ struct Buffer
     Size cap = 0;
 
     T & operator[](std::size_t pos) {
-        assert(pos < len);
+        bc_assert(pos < len);
         return val[pos];
     }
 

@@ -8,14 +8,6 @@ struct TestStats
     I32 failures;
 };
 
-template <typename T>
-void bc_memcpy(T * dest, T * src, Size len)
-{
-    for(int i = 0; i < len; i++) {
-        dest[i] = src[i];
-    }
-}
-
 void check2(TestStats * ts, B32 condition, S8 msg)
 {
     int const BUF_SIZE=256;
