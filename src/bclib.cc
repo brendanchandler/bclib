@@ -26,5 +26,5 @@ void strlist_append(StrList * node, Arena * arena, S8 str)
     }
     
     node->val = str;
-    node->next = make<StrList>(arena, 1);
+    node->next = make<StrList>(arena);
 }

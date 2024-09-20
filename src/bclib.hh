@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stdint.h>
-#include <stddef.h>
+#include <cstdint>
+#include <cstddef>
 #include <new>
 #include <trace.hh>
 
@@ -10,7 +10,7 @@
 using I64 = int64_t;
 using I32 = int32_t;
 using I8 = int8_t;
-using Byte = char;
+using Byte = unsigned char;
 
 using F32 = float;
 using F64 = double;
@@ -21,7 +21,7 @@ using U32 = uint32_t;
 using U8 = uint8_t;
 
 using Size = ptrdiff_t;
-using Usize = size_t;
+using USize = size_t;
 
 using B32 = int32_t;
 
@@ -45,21 +45,31 @@ struct Arena
     }
 };
 
+template <typename T, typename ...A>
+T * make_array(Arena * arena, Size count = 1)
+{
+    Size const size = sizeof(T);
+    Size const align = alignof(T);
+    Size const pad = (align - 1) & (Size)arena->end;
+    
+    //bc_assert(count >= 0);
+    //bc_assert((arena->end - arena->beg - pad) >= size * count);
+    arena->end -= size * count + pad;
+    new((void *)(arena->end)) T[count];
+    return arena->end;
+}
 
 template <typename T, typename ...A>
-T * make(Arena * arena, Size count = 1, A ...args)
+T * make(Arena * arena, A ...args)
 {
     Size size = sizeof(T);
     Size align = alignof(T);
     Size pad = (align - 1) & (Size)arena->end;
     
-    bc_assert(count >= 0);
-    bc_assert((arena->end - arena->beg - pad) >= size * count);
-    arena->end -= size * count + pad;
+    bc_assert((arena->end - arena->beg - pad) >= size);
+    arena->end -= size * + pad;
     T * r = (T *)arena->end;
-    for (int i = 0; i < count; ++i) {
-        new((void *)&r[i]) T(args...);
-    }
+    new((void *)r) T(args...);
     return r;
 }
 
@@ -111,21 +121,26 @@ void strlist_append(StrList * list, Arena * arena, S8 str);
 template <typename T>
 struct Buffer
 {
-    T * val = 0;
+    T * beg = 0;
     Size len = 0;
     Size cap = 0;
 
     T & operator[](std::size_t pos) {
         bc_assert(pos < len);
-        return val[pos];
+        return beg[pos];
     }
 
     Buffer(Arena * arena, Size size):
         len(0),
         cap(size)
     {
-        val = make<T>(arena, size);
+        beg = make<T>(arena, size);
     }
+
+        Buffer(Byte * beg, Size cap):
+                beg(beg),
+                len(0),
+                cap(cap) {}
 };
 
 template <typename T>

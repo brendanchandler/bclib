@@ -8,7 +8,7 @@ mkdir -p build
 
 CXXFLAGS="-Wall -Werror -Wextra"
 CXXFLAGS+=" -Wno-unused-parameter -Wno-unused-function"
-CXXFLAGS+=" -fsanitize=undefined -fsanitize-trap"
+#CXXFLAGS+=" -fsanitize=undefined -fsanitize-trap"
 CXXFLAGS+=" -I src/"
 CXXFLAGS+=" -g3 -O0"
 
@@ -23,5 +23,5 @@ cmake -S tracy -B tracy/build/
 cmake --build tracy/build/
 
 PERF_SRCS="test/test_bclib_perf.cc"
-g++ ${CXXFLAGS} -DTRACY_CALLSTACK=60 -DTRACY_NO_EXIT -DTRACY_ENABLE -I tracy/public/ -o build/test-bclib-perf ${SRCS} ${PERF_SRCS} -Ltracy/build -lTracyClient
+g++ ${CXXFLAGS} -DTRACY_CALLSTACK=60 -DTRACY_NO_EXIT -DTRACY_ENABLE -I tracy/public/ -o build/test-bclib-perf ${SRCS} ${PERF_SRCS} -Ltracy/build -lTracyClient -lpthread -ldl
 

@@ -25,6 +25,13 @@ struct TestStruct
     F64 g;
     F64 h;
     U8 i[10];
+
+        TestStruct():
+                a(5),
+                b(10),
+                e(100),
+                g(5.5),
+                h(500.555) {}
 };
     
 
@@ -37,47 +44,38 @@ static void test_malloc(TestStats & ts)
         U8 * msg = (U8 *)malloc(100);
         S8 const_str("Hello World\n");
         bc_memcpy(msg, const_str.val, const_str.len);
-        free(msg);
 
         TestStruct * ts = (TestStruct *)malloc(sizeof(TestStruct));
-        ts->a = 5;
-        ts->b = 10;
-        ts->e = 100;
-        ts->g = 5.5;
-        ts->h = 500.555;
+        new(ts) TestStruct;
+        bc_assert(ts->a == 5);
 
         free(ts);
+        free(msg);
     }
     FrameMark;
 }
 
 static void test_arena(TestStats & ts)
 {
-    ZoneScoped;
-    print(S8("Testing arena allocs...\n"));
-    Size const BUF_CAP = 1<<30;
-    Byte * buf = new Byte[BUF_CAP];
-
-    for (Size i = 0; i < 1000000; i++) {
+        ZoneScoped;
+        print(S8("Testing C style arena allocs...\n"));
+        USize const BUF_CAP = 1u << 31;
+        Byte * buf = (Byte *)malloc(sizeof(Byte) * BUF_CAP);
         Arena a(buf, BUF_CAP);
 
-        for (Size j = 0; j < 10; j++) {
-            U8 * msg = make<U8>(&a, 100);
-            S8 const_str("Hello World\n");
-            bc_memcpy(msg, const_str.val, const_str.len);
+        for (Size i = 0; i < 10`000`000; i++) {
+                U8 * msg = make_array<U8>(&a, 100);
+                memset(msg, 0, 100);
+                
+                S8 const_str("Hello World\n");
+                bc_memcpy(msg, const_str.val, const_str.len);
 
-            TestStruct * ts = make<TestStruct>(&a);
-            ts->a = 5;
-            ts->b = 10;
-            ts->e = 100;
-            ts->g = 5.5;
-            ts->h = 500.555;
+                TestStruct * ts = (TestStruct *)make<TestStruct>(&a);
+                bc_assert(ts->a == 5);
         }
 
-    }
-
-    delete[] buf;
-    FrameMark;
+        free(buf);
+        FrameMark;
 }
 
 static void test_new(TestStats & ts)
@@ -91,11 +89,7 @@ static void test_new(TestStats & ts)
         delete[] msg;
 
         TestStruct * ts = new TestStruct;
-        ts->a = 5;
-        ts->b = 10;
-        ts->e = 100;
-        ts->g = 5.5;
-        ts->h = 500.555;
+        bc_assert(ts->a == 5);
 
         delete ts;
     }
