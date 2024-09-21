@@ -63,7 +63,7 @@ static void test_arena(TestStats & ts)
         Byte * buf = (Byte *)malloc(sizeof(Byte) * BUF_CAP);
         Arena a(buf, BUF_CAP);
 
-        for (Size i = 0; i < 10`000`000; i++) {
+        for (Size i = 0; i < 10000000; i++) {
                 U8 * msg = make_array<U8>(&a, 100);
                 memset(msg, 0, 100);
                 
